@@ -1,0 +1,40 @@
+name: Qtah-QML
+version: 0.0.1
+build-type: Simple
+cabal-version: >=1.10
+
+Flag Debug
+  Description: Enable debug support
+  Manual: True
+  Default: False
+
+Library
+  hs-source-dirs: src
+  exposed-modules:
+    Graphics.UI.Qtah.QmlObject
+  build-depends:
+      base >=4 && <5
+    , binary >=0.7 && <0.8
+    , bytestring >=0.10 && <0.11
+    , filepath >=1.0 && <1.5
+    , hoppy-runtime >=0.2 && <0.3
+    , qtah >=0.1 && <0.2
+  ghc-options: -W -fwarn-incomplete-patterns -fwarn-unused-do-bind
+  default-language: Haskell2010
+  include-dirs: cbits  
+  C-sources:
+    cbits/QmlProxyObject.cpp
+    cbits/qtahqml.cpp
+  if flag(debug)
+    cc-options: -fPIC -g -DDEBUG -O0
+    GHC-Options: -debug -Wall -fno-warn-orphans
+    CPP-Options: -fPIC -g -DDEBUG 
+  else
+    cc-options: -fPIC
+  Pkgconfig-depends:
+    Qt5Core    >= 5.0 && < 6.0,
+    Qt5Gui     >= 5.0 && < 6.0,
+    Qt5Widgets >= 5.0 && < 6.0,
+    Qt5Qml     >= 5.0 && < 6.0,
+    Qt5Quick   >= 5.0 && < 6.0
+  Extra-libraries: stdc++
