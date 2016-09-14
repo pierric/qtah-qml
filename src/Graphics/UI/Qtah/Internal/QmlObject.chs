@@ -1,16 +1,15 @@
 #include "qtahqml.h"
 {-# LANGUAGE MultiParamTypeClasses, FlexibleInstances #-}
-module Graphics.UI.Qtah.QmlObject where
+module Graphics.UI.Qtah.Internal.QmlObject where
 
-import Data.IORef
 import Foreign.Ptr
 import Foreign.ForeignPtr
 import Foreign.C.String
 import Foreign.Marshal
 import Foreign.Storable
-import Foreign.Hoppy.Runtime 
-import Graphics.UI.Qtah.Qml.QJSValue (QJSValue)
+import Foreign.Hoppy.Runtime
 import Graphics.UI.Qtah.Core.QObject
+import Graphics.UI.Qtah.Qml.QJSValue (QJSValue)
 import Graphics.UI.Qtah.Core.Unsafe
 
 -- A QmlObject contain a set of method in the type of HsUniformFun
@@ -25,23 +24,9 @@ data QmlObject a = QmlObject (Ptr (QmlObject a))
 data QmlObjectConst a = QmlObjectConst (Ptr (QmlObjectConst a))
                       | QmlObjectConstGc (ForeignPtr ()) (Ptr (QmlObjectConst a))
 
-newQmlObject :: a -> [(String, IORef a -> QJSValue -> IO QJSValue)] -> IO (QmlObject a)
-newQmlObject self members = do
-    refa <- newIORef self
-    let memb = map (second (buildCallback refa)) members
-    objptr <- withHsClassInfo "QtahQmlObject" memb qQmlObject_new
-    return (QmlObject objptr)  
-  where
-    buildCallback :: IORef a -> (IORef a -> QJSValue -> IO QJSValue) -> HsUniformFun
-    buildCallback self fun arg = do
-        with arg (\argptr -> do 
-          argobj <- decode argptr
-          retobj <- fun self argobj
-          return $ toPtr retobj)
-
-castQObjectToNonconst :: QmlObjectConst a -> QmlObject a
-castQObjectToNonconst (QmlObjectConst ptr') = QmlObject $ castPtr ptr'
-castQObjectToNonconst (QmlObjectConstGc fptr' ptr') = QmlObjectGc fptr' $ castPtr ptr'
+castQmlObjectToNonconst :: QmlObjectConst a -> QmlObject a
+castQmlObjectToNonconst (QmlObjectConst ptr') = QmlObject $ castPtr ptr'
+castQmlObjectToNonconst (QmlObjectConstGc fptr' ptr') = QmlObjectGc fptr' $ castPtr ptr'
 
 instance QObjectPtr (QmlObject a) where
   toQObject (QmlObject ptr') = qObjectFromRawPtr $ castPtr $ castQmlObjectToQObject $ castPtr ptr'
@@ -51,7 +36,7 @@ instance QObjectConstPtr (QmlObject a) where
   toQObjectConst = toQObjectConst . toQObject 
 
 instance QObjectConstPtr (QmlObjectConst a) where
-  toQObjectConst = toQObjectConst . castQObjectToNonconst
+  toQObjectConst = toQObjectConst . castQmlObjectToNonconst
 
 instance Eq (QmlObject a) where
   x == y = toPtr x == toPtr y
@@ -110,6 +95,9 @@ class (QmlObjectConstPtr this a, QObjectPtr this) => QmlObjectPtr this a where
 instance QmlObjectConstPtr (QmlObject a) a where
   toQmlObjectConst (QmlObject ptr') = QmlObjectConst $ castPtr ptr'
   toQmlObjectConst (QmlObjectGc fptr' ptr') = QmlObjectConstGc fptr' $ castPtr ptr'
+
+instance QmlObjectConstPtr (QmlObjectConst a) a where
+  toQmlObjectConst = id
 
 instance QmlObjectPtr (QmlObject a) a where
   toQmlObject = id
