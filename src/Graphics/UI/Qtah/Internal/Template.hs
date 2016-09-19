@@ -12,32 +12,35 @@ import qualified Graphics.UI.Qtah.Qml.QJSEngine as QJSEngine
 import Foreign.Hoppy.Runtime
 import Graphics.UI.Qtah.Internal.Class
 
-mkTupleJS :: Int -> Q Dec
-mkTupleJS n = do
-  names <- sequence $ replicate n (newName "a")
-  let cxt = mapM (\n -> [t|JS $(varT n)|]) names
-      dec = [t|JS $(return $ foldl AppT (TupleT n) (map VarT names)) |]
-      bdy = []  
-      --fJS = fmap head 
-      --      [d| fromJS a = runMaybeT $ do
-      --               ensure (QJSValue.isObject a)
-      --               idx1 <- lift $ QString.encode "_1"
-      --               idx2 <- lift $ QString.encode "_2"
-      --               ensure (QJSValue.hasProperty a idx1)
-      --               ensure (QJSValue.hasProperty a idx2)
-      --               a1 <- (lift $ QJSValue.property a idx1) >>= MaybeT . fromJS
-      --               a2 <- (lift $ QJSValue.property a idx2) >>= MaybeT . fromJS
-      --               return (a1,a2) |]
-
-      --tJS = fmap head
-      --      [d| toJS (a1,a2) = do
-      --              obj <- QJSEngine.newObject ?engine
-      --              idx1 <- QString.encode "_1"
-      --              idx2 <- QString.encode "_2"
-      --              toJS a1 >>= QJSValue.setProperty obj idx1 
-      --              toJS a2 >>= QJSValue.setProperty obj idx2
-      --              toGc obj |]
-  instanceD cxt dec bdy
+--The Template Haskell does not support ImplicitParams yet.
+--So it is not possible to instantiate the JS directly.
+--
+--mkTupleJS :: Int -> Q Dec
+--mkTupleJS n = do
+--  names <- sequence $ replicate n (newName "a")
+--  let cxt = mapM (\n -> [t|JS $(varT n)|]) names
+--      dec = [t|JS $(return $ foldl AppT (TupleT n) (map VarT names)) |]
+--      bdy = []  
+--      --fJS = fmap head 
+--      --      [d| fromJS a = runMaybeT $ do
+--      --               ensure (QJSValue.isObject a)
+--      --               idx1 <- lift $ QString.encode "_1"
+--      --               idx2 <- lift $ QString.encode "_2"
+--      --               ensure (QJSValue.hasProperty a idx1)
+--      --               ensure (QJSValue.hasProperty a idx2)
+--      --               a1 <- (lift $ QJSValue.property a idx1) >>= MaybeT . fromJS
+--      --               a2 <- (lift $ QJSValue.property a idx2) >>= MaybeT . fromJS
+--      --               return (a1,a2) |]
+--
+--      --tJS = fmap head
+--      --      [d| toJS (a1,a2) = do
+--      --              obj <- QJSEngine.newObject ?engine
+--      --              idx1 <- QString.encode "_1"
+--      --              idx2 <- QString.encode "_2"
+--      --              toJS a1 >>= QJSValue.setProperty obj idx1 
+--      --              toJS a2 >>= QJSValue.setProperty obj idx2
+--      --              toGc obj |]
+--  instanceD cxt dec bdy
 
 fJ :: Int -> Q Exp
 fJ n = 
